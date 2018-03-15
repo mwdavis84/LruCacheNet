@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DebugType>Full</DebugType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Mark Davis</Authors>
+    <Company>Mark Davis</Company>
+    <Description>A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.</Description>
+    <Copyright>2018 Mark Davis</Copyright>
+  </PropertyGroup>
+
+</Project>
