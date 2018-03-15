@@ -8,6 +8,11 @@
     <Company>Mark Davis</Company>
     <Description>A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.</Description>
     <Copyright>2018 Mark Davis</Copyright>
+    <PackageLicenseUrl>https://github.com/mwdavis84/LruCacheNet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/mwdavis84/LruCacheNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mwdavis84/LruCacheNet</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageReleaseNotes>First release</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
