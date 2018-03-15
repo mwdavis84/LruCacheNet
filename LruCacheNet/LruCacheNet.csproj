@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DebugType>Full</DebugType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>mwdavis84</Authors>
+    <Authors>https://www.nuget.org/profiles/mwdavis84</Authors>
     <Company>Mark Davis</Company>
     <Description>A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.</Description>
     <Copyright>(c) 2018 Mark Davis</Copyright>
@@ -12,13 +12,13 @@
     <PackageProjectUrl>https://github.com/mwdavis84/LruCacheNet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mwdavis84/LruCacheNet</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageReleaseNotes>- Use generic keys rather than strings
-- Allow value types as data
-- Fix a bug when moving items from end to start</PackageReleaseNotes>
-    <PackageTags>cache LRUCache</PackageTags>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>1.1.0</Version>
+    <PackageReleaseNotes>- Use generic keys instead of strings
+- Allow value types for data
+- Fix bug when moving item from back of cache to front</PackageReleaseNotes>
+    <PackageTags>cache, LRUCache</PackageTags>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
 </Project>
