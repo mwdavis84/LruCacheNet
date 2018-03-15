@@ -3,12 +3,13 @@
 namespace LruCacheNet
 {
     /// <summary>
-    /// Doubly LinkedList node for generic data
+    /// Node for storing data in the doubly linked list
     /// </summary>
+    /// <typeparam name="T">Type of data to store in the cache</typeparam>
     public sealed class Node<T>
     {
         /// <summary>
-        /// Creates a new Linked List Node
+        /// Initializes a new instance of the <see cref="Node{T}"/> class
         /// </summary>
         /// <param name="key">Key for the node</param>
         /// <param name="data">Data for the node</param>

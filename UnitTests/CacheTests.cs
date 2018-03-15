@@ -16,7 +16,7 @@ namespace UnitTests
             bool thrown = false;
             try
             {
-                var LruCache = new LruCache<TestData>(1);
+                var cache = new LruCache<TestData>(1);
             }
             catch (ArgumentException)
             {

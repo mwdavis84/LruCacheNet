@@ -6,33 +6,19 @@ namespace LruCacheNet
     /// <summary>
     /// An LRU cache that caches data in memory 
     /// </summary>
-    public class LruCache<T> where T: class
+    /// <typeparam name="T">Type of data to store in the cache. Must be an object</typeparam>
+    public class LruCache<T> where T : class
     {
         private const int DefaultCacheSize = 1000;
         private const int MinimumCacheSize = 3;
 
-        /// <summary>
-        /// A method to update a data item in the cache
-        /// </summary>
-        /// <param name="cachedData">Data currently in the cache</param>
-        /// <param name="newData">New data to use to update the data</param>
-        /// <returns>True if the value was updated, false if it was unchanged</returns>
-        public delegate bool UpdateDataMethod(T cachedData, T newData);
-
-        /// <summary>
-        /// A method to create a deep copy of an item to place in the cache
-        /// </summary>
-        /// <param name="data">Data to copy</param>
-        /// <returns>New copy of data</returns>
-        public delegate T CreateCopyMethod(T data);
-
         private Dictionary<string, Node<T>> _data;
         private Node<T> _head;
         private Node<T> _tail;
-        private int _cacheSize;
+        private int _cacheSize;        
+        private object _lock;
         private UpdateDataMethod _updateMethod;
         private CreateCopyMethod _createMethod;
-        private object _lock;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LruCache{T}"/> class with the default size of 1000 items
@@ -59,6 +45,21 @@ namespace LruCacheNet
             _tail = null;
             _lock = new object();
         }
+
+        /// <summary>
+        /// A method to update a data item in the cache
+        /// </summary>
+        /// <param name="cachedData">Data currently in the cache</param>
+        /// <param name="newData">New data to use to update the data</param>
+        /// <returns>True if the value was updated, false if it was unchanged</returns>
+        public delegate bool UpdateDataMethod(T cachedData, T newData);
+
+        /// <summary>
+        /// A method to create a deep copy of an item to place in the cache
+        /// </summary>
+        /// <param name="data">Data to copy</param>
+        /// <returns>New copy of data</returns>
+        public delegate T CreateCopyMethod(T data);
 
         /// <summary>
         /// Gets the number of items currently int the cache
@@ -102,6 +103,7 @@ namespace LruCacheNet
         /// Adds an item to the cache or updates its values if already in the cache
         /// If the item already existed in the cache it will also be moved to the front
         /// </summary>
+        /// <param name="key">Key to store in the cache</param>
         /// <param name="data">Data to cache</param>
         public void AddOrUpdate(string key, T data)
         {

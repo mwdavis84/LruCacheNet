@@ -1,6 +1,6 @@
 ﻿namespace UnitTests
 {
-    class TestData
+    internal class TestData
     {
         public string TestValue1 { get; set; }
 
