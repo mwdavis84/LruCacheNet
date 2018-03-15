@@ -11,7 +11,7 @@ namespace LruCacheNet
     /// <summary>
     /// An LRU cache that caches data in memory 
     /// </summary>
-    /// <typeparam name="K">Typ of key to use</typeparam>
+    /// <typeparam name="K">Type of key to use</typeparam>
     /// <typeparam name="T">Type of data to store in the cache</typeparam>
     public class LruCache<K, T>
     {
@@ -37,12 +37,13 @@ namespace LruCacheNet
         /// Initializes a new instance of the <see cref="LruCache{K,T}"/> class with a specific cache size
         /// </summary>
         /// <param name="capacity">Maximum number of items to hold in the cache</param>
+        /// <exception cref="ArgumentException">Thrown if the capacity is less than the minimum</exception>
         public LruCache(int capacity)
         {
             // Why would you have a cache with so few items?
             if (capacity < MinimumCacheSize)
             {
-                throw new ArgumentException("Cache size must be at least 3", nameof(capacity));
+                throw new ArgumentException("Cache size must be at least 2", nameof(capacity));
             }
 
             _cacheSize = capacity;
@@ -111,6 +112,7 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key to store in the cache</param>
         /// <param name="data">Data to cache</param>
+        /// <exception cref="ArgumentException">Thrown if the key or data is null</exception>
         public void AddOrUpdate(K key, T data)
         {
             if (key == null)
@@ -168,6 +170,7 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key to find in the cache</param>
         /// <returns>Cached data, null if not found</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if the key is not found in the cache</exception>
         public T Get(K key)
         {
             lock (_lock)
@@ -210,6 +213,7 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key for the item to remove</param>
         /// <returns>Data that was stored in the cache, null if none</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if the key is not found in the cache</exception>
         public T Remove(K key)
         {
             lock (_lock)
@@ -244,6 +248,7 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key for which to search the queue</param>
         /// <returns>Item for key if found, otherwise null</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if the key is not found in the cache</exception>
         public T Peek(K key)
         {
             lock (_lock)
