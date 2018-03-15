@@ -11,29 +11,30 @@ namespace LruCacheNet
     /// <summary>
     /// An LRU cache that caches data in memory 
     /// </summary>
-    /// <typeparam name="T">Type of data to store in the cache. Must be an object</typeparam>
-    public class LruCache<T> where T : class
+    /// <typeparam name="K">Typ of key to use</typeparam>
+    /// <typeparam name="T">Type of data to store in the cache</typeparam>
+    public class LruCache<K, T>
     {
         private const int DefaultCacheSize = 1000;
-        private const int MinimumCacheSize = 3;
+        private const int MinimumCacheSize = 2;
 
-        private Dictionary<string, Node<T>> _data;
-        private Node<T> _head;
-        private Node<T> _tail;
+        private Dictionary<K, Node<K, T>> _data;
+        private Node<K, T> _head;
+        private Node<K, T> _tail;
         private int _cacheSize;        
         private object _lock;
         private UpdateDataMethod _updateMethod;
         private CreateCopyMethod _createMethod;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LruCache{T}"/> class with the default size of 1000 items
+        /// Initializes a new instance of the <see cref="LruCache{K,T}"/> class with the default size of 1000 items
         /// </summary>
         public LruCache() : this(DefaultCacheSize)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LruCache{T}"/> class with a specific cache size
+        /// Initializes a new instance of the <see cref="LruCache{K,T}"/> class with a specific cache size
         /// </summary>
         /// <param name="capacity">Maximum number of items to hold in the cache</param>
         public LruCache(int capacity)
@@ -45,7 +46,7 @@ namespace LruCacheNet
             }
 
             _cacheSize = capacity;
-            _data = new Dictionary<string, Node<T>>();
+            _data = new Dictionary<K, Node<K, T>>();
             _head = null;
             _tail = null;
             _lock = new object();
@@ -110,9 +111,9 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key to store in the cache</param>
         /// <param name="data">Data to cache</param>
-        public void AddOrUpdate(string key, T data)
+        public void AddOrUpdate(K key, T data)
         {
-            if (string.IsNullOrEmpty(key))
+            if (key == null)
             {
                 throw new ArgumentException("Key cannot be null", nameof(key));
             }
@@ -123,7 +124,7 @@ namespace LruCacheNet
 
             lock (_lock)
             {
-                if (_data.TryGetValue(key, out Node<T> node))
+                if (_data.TryGetValue(key, out Node<K, T> node))
                 {
                     // Data is already in the cache
                     // Move node to the head, and link up the node's previous next/previous together
@@ -134,7 +135,7 @@ namespace LruCacheNet
                 {
                     // Data isn't in the cache yet, so create a new node and add it
                     T dataToInsert = _createMethod == null ? data : _createMethod(data);
-                    node = new Node<T>(key, dataToInsert);
+                    node = new Node<K, T>(key, dataToInsert);
                     _data[key] = node;
 
                     if (_head == null)
@@ -153,8 +154,8 @@ namespace LruCacheNet
                         if (Count > _cacheSize)
                         {
                             // List is over capacity so remove the tail
-                            Node<T> nodeToRemove = _tail;
-                            RemoveNodeFromList(nodeToRemove.Key, nodeToRemove);
+                            Node<K, T> nodeToRemove = _tail;
+                            RemoveNodeFromList(nodeToRemove);
                         }
                     }
                 }
@@ -167,18 +168,18 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key to find in the cache</param>
         /// <returns>Cached data, null if not found</returns>
-        public T Get(string key)
+        public T Get(K key)
         {
             lock (_lock)
             {
-                if (_data.TryGetValue(key, out Node<T> node))
+                if (_data.TryGetValue(key, out Node<K, T> node))
                 {
                     MoveNodeUp(node);
                     return node.Data;
                 }
                 else
                 {
-                    return null;
+                    throw new KeyNotFoundException();
                 }
             }
         }
@@ -188,11 +189,11 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key for the item to refresh</param>
         /// <returns>True if item was in the cache and refreshed; otherwise false</returns>
-        public bool Refresh(string key)
+        public bool Refresh(K key)
         {
             lock (_lock)
             {
-                if (_data.TryGetValue(key, out Node<T> node))
+                if (_data.TryGetValue(key, out Node<K, T> node))
                 {
                     MoveNodeUp(node);
                     return true;
@@ -209,18 +210,18 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key for the item to remove</param>
         /// <returns>Data that was stored in the cache, null if none</returns>
-        public T Remove(string key)
+        public T Remove(K key)
         {
             lock (_lock)
             {
-                if (_data.TryGetValue(key, out Node<T> node))
+                if (_data.TryGetValue(key, out Node<K, T> node))
                 {
-                    RemoveNodeFromList(key, node);
+                    RemoveNodeFromList(node);
                     return node.Data;
                 }
                 else
                 {
-                    return null;
+                    throw new KeyNotFoundException();
                 }
             }
         }
@@ -230,7 +231,7 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key for which to search in the cache.</param>
         /// <returns>True if item is found in the cache, otherwise false</returns>
-        public bool ContainsKey(string key)
+        public bool ContainsKey(K key)
         {
             lock (_lock)
             {
@@ -243,12 +244,19 @@ namespace LruCacheNet
         /// </summary>
         /// <param name="key">Key for which to search the queue</param>
         /// <returns>Item for key if found, otherwise null</returns>
-        public T Peek(string key)
+        public T Peek(K key)
         {
             lock (_lock)
             {
-                _data.TryGetValue(key, out Node<T> data);
-                return data?.Data;
+                _data.TryGetValue(key, out Node<K, T> data);
+                if (data != null)
+                {
+                    return data.Data;
+                }
+                else
+                {
+                    throw new KeyNotFoundException();
+                }
             }
         }
 
@@ -268,11 +276,10 @@ namespace LruCacheNet
         /// <summary>
         /// Removes a node from the list
         /// </summary>
-        /// <param name="key">Key for the node</param>
         /// <param name="node">Node to remove</param>
-        private void RemoveNodeFromList(string key, Node<T> node)
+        private void RemoveNodeFromList(Node<K, T> node)
         {
-            _data.Remove(key);
+            _data.Remove(node.Key);
             if (node.Previous != null)
             {
                 node.Previous.Next = node.Next;
@@ -297,8 +304,13 @@ namespace LruCacheNet
         /// Moves a node to the front of the cache
         /// </summary>
         /// <param name="node">Node to move to the front</param>
-        private void MoveNodeUp(Node<T> node)
+        private void MoveNodeUp(Node<K, T> node)
         {
+            if (node == _head)
+            {
+                return;
+            }
+
             if (node.Previous != null)
             {
                 if (node == _tail)
@@ -312,6 +324,7 @@ namespace LruCacheNet
                 node.Next.Previous = node.Previous;
             }
             node.Next = _head;
+            _head.Previous = node;
             node.Previous = null;
             _head = node;
         }

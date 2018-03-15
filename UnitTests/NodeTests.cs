@@ -18,7 +18,7 @@ namespace UnitTests
             bool thrown = false;
             try
             {
-                var node = new Node<TestData>(null, new TestData());
+                var node = new Node<string, TestData>(null, new TestData());
             }
             catch (ArgumentException)
             {
@@ -33,7 +33,7 @@ namespace UnitTests
             bool thrown = false;
             try
             {
-                var node = new Node<TestData>("0", null);
+                var node = new Node<string, TestData>("0", null);
             }
             catch (ArgumentException)
             {
@@ -49,14 +49,14 @@ namespace UnitTests
         [DataRow(true, true, "Key:0 Data:0 Previous:Set Next:Set", DisplayName = "True|True")]
         public void NodeToString(bool setPrevious, bool setNext, string expected)
         {
-            var node = new Node<string>("0", "0");
+            var node = new Node<string, string>("0", "0");
             if (setPrevious)
             {
-                node.Previous = new Node<string>("1", "1");
+                node.Previous = new Node<string, string>("1", "1");
             }
             if (setNext)
             {
-                node.Next = new Node<string>("2", "2");
+                node.Next = new Node<string, string>("2", "2");
             }
             string str = node.ToString();
             Assert.AreEqual(expected, str);
