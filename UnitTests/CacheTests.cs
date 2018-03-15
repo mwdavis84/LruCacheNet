@@ -4,6 +4,7 @@
 //  
 
 using System;
+using System.Collections.Generic;
 using LruCacheNet;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,7 +22,7 @@ namespace UnitTests
             bool thrown = false;
             try
             {
-                var cache = new LruCache<TestData>(1);
+                var cache = new LruCache<string, TestData>(1);
             }
             catch (ArgumentException)
             {
@@ -33,21 +34,21 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void CreateDefaultSize()
         {
-            var cache = new LruCache<TestData>();
+            var cache = new LruCache<string, TestData>();
             Assert.AreEqual(1000, cache.Capacity);
         }
 
         [TestMethod, TestCategory("Cache")]
         public void CreateCustomSize()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             Assert.AreEqual(10, cache.Capacity);
         }
 
         [TestMethod, TestCategory("Cache")]
         public void InsertEmpty()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             var data = new TestData
             {
                 TestValue1 = "123"
@@ -63,7 +64,7 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void InsertNullValue()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             bool thrown = false;
             try
             {
@@ -80,7 +81,7 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void InsertNullKey()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             bool thrown = false;
             try
             {
@@ -97,15 +98,23 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void GetNotThere()
         {
-            var cache = new LruCache<TestData>(10);
-            var data = cache.Get("123");
-            Assert.IsNull(data, "Item shouldn't have been found in cache");
+            var cache = new LruCache<string, TestData>(10);
+            bool thrown = false;
+            try
+            {
+                cache.Get("123");
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Item shouldn't have been found in cache");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void InsertOverCapacity()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index <= 10; ++index)
             {
                 var data = new TestData
@@ -114,14 +123,23 @@ namespace UnitTests
                 };
                 cache.AddOrUpdate(index.ToString(), data);
             }
-            var firstData = cache.Get("0");
-            Assert.IsNull(firstData, "Item should have been removed from cache");
+
+            bool thrown = false;
+            try
+            {
+                cache.Get("0");
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Item should have been removed from cache");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void InsertReorder()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index < 10; ++index)
             {
                 var data = new TestData
@@ -147,7 +165,7 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void UpdateItem()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             cache.SetUpdateMethod((a, b) =>
             {
                 a.TestValue1 = b.TestValue1;
@@ -190,7 +208,7 @@ namespace UnitTests
         [DataRow("5", DisplayName = "Remove Middle")]
         public void RemoveItem(string keyToRemove)
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index < 10; ++index)
             {
                 var test = new TestData
@@ -206,22 +224,39 @@ namespace UnitTests
             Assert.AreEqual(keyToRemove, removedData.TestValue1, "Removed item doesn't match added item");
             Assert.AreEqual(9, cache.Count, "Cache should be empty");
 
-            removedData = cache.Remove(keyToRemove);
-            Assert.IsNull(removedData, "Removed data should be null");
+            bool thrown = false;
+            try
+            {
+                removedData = cache.Remove(keyToRemove);
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Removed data should be null");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void RemoveItemNotThere()
         {
-            var cache = new LruCache<TestData>(10);
-            var removedData = cache.Remove("0");
-            Assert.IsNull(removedData, "Removed data should be null");
+            var cache = new LruCache<string, TestData>(10);
+
+            bool thrown = false;
+            try
+            {
+                cache.Remove("0");
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Removed data should be null");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void ClearItems()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index < 10; ++index)
             {
                 cache.AddOrUpdate(index.ToString(), new TestData());
@@ -231,15 +266,23 @@ namespace UnitTests
             for (int index = 0; index < 10; ++index)
             {
                 var removed = cache.Get(index.ToString());
-                Assert.IsNotNull(removed, "Removed item should't exist in cache");
+                Assert.IsNotNull(removed, "Removed item should exist in cache");
             }
 
             cache.Clear();
             Assert.AreEqual(0, cache.Count, "Cache size incorrect after clearing");
             for (int index = 0; index < 10; ++index)
             {
-                var removed = cache.Remove(index.ToString());
-                Assert.IsNull(removed, "Removed item shouldn't exist in cache");
+                bool thrown = false;
+                try
+                {
+                    cache.Remove(index.ToString());
+                }
+                catch (KeyNotFoundException)
+                {
+                    thrown = true;
+                }
+                Assert.IsTrue(thrown, "Removed item shouldn't exist in cache");
             }
         }
 
@@ -248,7 +291,7 @@ namespace UnitTests
         [DataRow(false, DisplayName = "Item Not Exists")]
         public void ContainsTest(bool shouldExist)
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             if (shouldExist)
             {
                 cache.AddOrUpdate("1", new TestData());
@@ -260,7 +303,7 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void PeekTest()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index < 10; ++index)
             {
                 cache.AddOrUpdate(index.ToString(), new TestData());
@@ -271,28 +314,45 @@ namespace UnitTests
             Assert.IsNotNull(cached, "Item should exist in cache");
             
             cache.AddOrUpdate("11", new TestData());
-            var firstData = cache.Get("0");
-            Assert.IsNull(firstData, "Item should have been removed from cache");
+            bool thrown = false;
+            try
+            {
+                cache.Get("0");
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Item should have been removed from cache");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void PeekNotExists()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index < 10; ++index)
             {
                 cache.AddOrUpdate(index.ToString(), new TestData());
             }
             Assert.AreEqual(10, cache.Count, "Cache size incorrect");
 
-            var cached = cache.Peek("11");
-            Assert.IsNull(cached, "Item should not exist in cache");
+            
+            bool thrown = false;
+            try
+            {
+                cache.Peek("11");
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Item should not exist in cache");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void RefreshTest()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             for (int index = 0; index < 10; ++index)
             {
                 cache.AddOrUpdate(index.ToString(), new TestData());
@@ -310,10 +370,50 @@ namespace UnitTests
         [TestMethod, TestCategory("Cache")]
         public void RefreshNotExists()
         {
-            var cache = new LruCache<TestData>(10);
+            var cache = new LruCache<string, TestData>(10);
             cache.AddOrUpdate("0", new TestData());
             bool check = cache.Refresh("1");
             Assert.IsFalse(check, "Item should not have refreshed in cache");
+        }
+
+        [TestMethod]
+        public void InsertsAndGets()
+        {
+            var cache = new LruCache<int, int>(2);
+            cache.AddOrUpdate(1, 1);
+            cache.AddOrUpdate(2, 2);
+
+            int retrieved = cache.Get(1);
+            Assert.AreEqual(1, retrieved);
+
+            cache.AddOrUpdate(3, 3);
+            bool thrown = false;
+            try
+            {
+                cache.Get(2);
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown);
+
+            cache.AddOrUpdate(4, 4);
+            thrown = false;
+            try
+            {
+                cache.Get(1);
+            }
+            catch (KeyNotFoundException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown);
+
+            retrieved = cache.Get(3);
+            Assert.AreEqual(3, retrieved);
+            retrieved = cache.Get(4);
+            Assert.AreEqual(4, retrieved);
         }
     }
 }

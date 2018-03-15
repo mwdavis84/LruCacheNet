@@ -10,21 +10,22 @@ namespace LruCacheNet
     /// <summary>
     /// Node for storing data in the doubly linked list
     /// </summary>
+    /// <typeparam name="K">Type of key to use to identify the data</typeparam>
     /// <typeparam name="T">Type of data to store in the cache</typeparam>
-    public sealed class Node<T>
+    public sealed class Node<K, T>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Node{T}"/> class
+        /// Initializes a new instance of the <see cref="Node{K,T}"/> class
         /// </summary>
         /// <param name="key">Key for the node</param>
         /// <param name="data">Data for the node</param>
 #if DEBUG
-        public Node(string key, T data)
+        public Node(K key, T data)
 #else
-        internal Node(string key, T data)
+        internal Node(K key, T data)
 #endif
         {
-            if (string.IsNullOrEmpty(key))
+            if (key == null)
             {
                 throw new ArgumentException("Key cannot be null", nameof(key));
             }
@@ -47,24 +48,24 @@ namespace LruCacheNet
         /// <summary>
         /// Gets or sets the key for the data in the cache
         /// </summary>
-        public string Key { get; set; }
+        public K Key { get; set; }
 
         /// <summary>
         /// Gets or sets the next node in the list
         /// </summary>
-        public Node<T> Next { get; set; }
+        public Node<K, T> Next { get; set; }
 
         /// <summary>
         /// Gets or sets the previous node in the list
         /// </summary>
-        public Node<T> Previous { get; set; }
+        public Node<K, T> Previous { get; set; }
 
         public override string ToString()
         {
             return $"Key:{Key} Data:{Data.ToString()} Previous:{GetNodeSummary(Previous)} Next:{GetNodeSummary(Next)}";
         }
 
-        private string GetNodeSummary(Node<T> node)
+        private string GetNodeSummary(Node<K, T> node)
         {
             return node != null ? "Set" : "Null";
         }
