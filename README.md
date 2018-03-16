@@ -13,7 +13,7 @@ A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.
 
     ```
     // Create a cache, optionally with a capacity
-    LruCache<object> cache = new LruCache<object>(); 
+    LruCache<object> cache = new LruCache<string, object>(); 
     
     // Add an item to the front of the cache
     cache.AddOrUpdate("Key", new object());          
@@ -35,6 +35,9 @@ A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.
     
     // Clear the cache
     cache.Clear();
+    
+    // Get an ordered list of data from most recently used item to least
+    List<object> items = cache.ToList();
     ```
     
 You can also set a custom method to update an item if its already in the cache, or create a copy when adding.
@@ -61,3 +64,12 @@ You can also set a custom method to update an item if its already in the cache, 
        }
     });
     
+You can use the LruCache like a regular ol' dictionary, if you'd like.
+
+    IDictionary<int, int> data = new LruCache();
+    data[0] = 5;
+    Console.WriteLine(data[0] == 5);
+    foreach (int key : in data.Keys)
+    {
+       // Do something fun but don't change the cache!
+    }
