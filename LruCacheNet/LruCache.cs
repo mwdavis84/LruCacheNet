@@ -487,7 +487,7 @@ namespace LruCacheNet
         {
             lock (_lock)
             {
-                return new CacheEnumerator<TKey, TValue>(_head);
+                return new CacheEnumerator<TKey, TValue>(this, _head);
             }
         }
 
