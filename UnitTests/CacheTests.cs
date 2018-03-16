@@ -348,7 +348,7 @@ namespace UnitTests
             Assert.IsFalse(check, "Item should not have refreshed in cache");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void InsertsAndGets()
         {
             var cache = new LruCache<int, int>(2);
@@ -388,7 +388,7 @@ namespace UnitTests
             Assert.AreEqual(4, retrieved);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryGetFound()
         {
             var cache = new LruCache<int, int>(10);
@@ -399,7 +399,7 @@ namespace UnitTests
             Assert.AreEqual(1, data, "Data should match");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryGetNotFound()
         {
             var cache = new LruCache<int, string>(10);
@@ -410,7 +410,7 @@ namespace UnitTests
             Assert.IsNull(data, "Data should be null");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryPeekFound()
         {
             var cache = new LruCache<int, int>(10);
@@ -421,7 +421,7 @@ namespace UnitTests
             Assert.AreEqual(1, data, "Data should match");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryPeekNotFound()
         {
             var cache = new LruCache<int, string>(10);
@@ -432,7 +432,7 @@ namespace UnitTests
             Assert.IsNull(data, "Data should be null");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void ToList()
         {
             var cache = new LruCache<int, int>(10);
@@ -449,7 +449,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheEnumerator()
         {
             var cache = new LruCache<int, int>(10);
@@ -467,7 +467,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheGenericEnumerator()
         {
             var cache = new LruCache<int, int>(10);
@@ -488,7 +488,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheGetIndexer()
         {
             var cache = new LruCache<int, int>(10);
@@ -506,7 +506,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheSetIndexer()
         {
             var cache = new LruCache<int, int>(10);
@@ -525,7 +525,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheAdd()
         {
             var cache = new LruCache<int, int>(10);
@@ -548,7 +548,7 @@ namespace UnitTests
             Assert.IsTrue(thrown, "Item should not have been added");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheAddKeyValuePair()
         {
             var cache = new LruCache<int, int>(10);
@@ -571,7 +571,7 @@ namespace UnitTests
             Assert.IsTrue(thrown, "Item should not have been added");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void ContainsKeyValuePair()
         {
             var cache = new LruCache<int, int>(10);
@@ -584,7 +584,7 @@ namespace UnitTests
             Assert.IsTrue(found, "Item should have been found");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void ContainsKeyNotValue()
         {
             var cache = new LruCache<int, int>(10);
@@ -597,7 +597,7 @@ namespace UnitTests
             Assert.IsFalse(found, "Item not should have been found");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void ContainsKeyValuePairNotFound()
         {
             var cache = new LruCache<int, int>(10);
@@ -610,7 +610,7 @@ namespace UnitTests
             Assert.IsFalse(found, "Item not should have been found");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void RemoveKeyValuePair()
         {
             var cache = new LruCache<int, int>(10);
@@ -623,7 +623,7 @@ namespace UnitTests
             Assert.IsTrue(found, "Item should have been found");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void RemoveKeyNotValue()
         {
             var cache = new LruCache<int, int>(10);
@@ -636,7 +636,7 @@ namespace UnitTests
             Assert.IsFalse(found, "Item not should have been found");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void RemoveKeyValuePairNotFound()
         {
             var cache = new LruCache<int, int>(10);
@@ -649,7 +649,7 @@ namespace UnitTests
             Assert.IsFalse(found, "Item not should have been found");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheCopyTo()
         {
             var cache = new LruCache<int, int>(10);
@@ -668,7 +668,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheCopyToWithIndex()
         {
             var cache = new LruCache<int, int>(10);
@@ -687,7 +687,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheCopyToTooSmall()
         {
             var cache = new LruCache<int, int>(10);
@@ -710,14 +710,14 @@ namespace UnitTests
             Assert.IsTrue(thrown, "Exception should have been thrown");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheReadOnly()
         {
             var cache = new LruCache<int, int>(10);
             Assert.IsFalse(cache.IsReadOnly, "Cache should not be read only");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheKeys()
         {
             var cache = new LruCache<int, int>(10);
@@ -738,7 +738,7 @@ namespace UnitTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void CacheValues()
         {
             var cache = new LruCache<int, int>(10);

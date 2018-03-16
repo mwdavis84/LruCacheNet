@@ -18,7 +18,7 @@ namespace UnitTests
         /// <summary>
         /// Tests creating an enumerator with a null node
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorNullList()
         {
             bool thrown = false;
@@ -36,7 +36,7 @@ namespace UnitTests
         /// <summary>
         /// Tests regular enumeration through the list
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorList()
         {
             var head = CreateTestList();
@@ -55,7 +55,7 @@ namespace UnitTests
         /// <summary>
         /// Tests resetting an enumerator
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorResetList()
         {
             var head = CreateTestList();
@@ -82,7 +82,7 @@ namespace UnitTests
         /// <summary>
         /// Tests an enumerator that's been disposed
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorDisposeTest()
         {
             var head = CreateTestList();
@@ -115,7 +115,7 @@ namespace UnitTests
         /// <summary>
         /// Tests the current property in the enumerator
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorGetCurrent()
         {
             var head = CreateTestList();
@@ -131,7 +131,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item is added to the collection
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedAdded()
         {
             var cache = new LruCache<int, int>(10);
@@ -152,7 +152,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item in the collection updates without an update method
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedUpdateValue()
         {
             var cache = new LruCache<int, int>(10);
@@ -173,7 +173,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item is updated in the underlying collection with an update method
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedUpdateMethod()
         {
             var cache = new LruCache<int, int>(10);
@@ -206,7 +206,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item update is called, but the item is not updated
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedUpdateMethodNoChange()
         {
             var cache = new LruCache<int, int>(10);
@@ -239,7 +239,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item is removed from the collection
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedRemoved()
         {
             var cache = new LruCache<int, int>(10);
@@ -260,7 +260,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item is retrieved from the collection and its position changes
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedGet()
         {
             var cache = new LruCache<int, int>(10);
@@ -281,7 +281,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item is refreshed in the collection and its position changes
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedRefresh()
         {
             var cache = new LruCache<int, int>(10);
@@ -302,7 +302,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when an item is refreshed in the collection and its position does not change
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedRefreshNoMove()
         {
             var cache = new LruCache<int, int>(10);
@@ -323,7 +323,7 @@ namespace UnitTests
         /// <summary>
         /// Tests when the collection is cleared
         /// </summary>
-        [TestMethod]
+        [TestMethod, TestCategory("Enumeartor")]
         public void EnumeratorChangedClear()
         {
             var cache = new LruCache<int, int>(10);
