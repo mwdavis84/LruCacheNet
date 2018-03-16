@@ -1,7 +1,5 @@
-﻿//  
-// Copyright (c) Mark Davis. All rights reserved.  
+﻿// Copyright (c) Mark Davis. All rights reserved.  
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.  
-//  
 
 using System;
 using System.Collections.Generic;
@@ -312,7 +310,7 @@ namespace UnitTests
 
             var cached = cache.Peek("0");
             Assert.IsNotNull(cached, "Item should exist in cache");
-            
+
             cache.AddOrUpdate("11", new TestData());
             bool thrown = false;
             try
@@ -336,7 +334,6 @@ namespace UnitTests
             }
             Assert.AreEqual(10, cache.Count, "Cache size incorrect");
 
-            
             bool thrown = false;
             try
             {
@@ -414,6 +411,68 @@ namespace UnitTests
             Assert.AreEqual(3, retrieved);
             retrieved = cache.Get(4);
             Assert.AreEqual(4, retrieved);
+        }
+
+        [TestMethod]
+        public void TryGetFound()
+        {
+            var cache = new LruCache<int, int>(10);
+            cache.AddOrUpdate(1, 1);
+            
+            bool result = cache.TryGet(1, out int data);
+            Assert.IsTrue(result, "Item should have been found");
+            Assert.AreEqual(1, data, "Data should match");
+        }
+
+        [TestMethod]
+        public void TryGetNotFound()
+        {
+            var cache = new LruCache<int, string>(10);
+            cache.AddOrUpdate(1, "1");
+
+            bool result = cache.TryGet(2, out string data);
+            Assert.IsFalse(result, "Item should not have been found");
+            Assert.IsNull(data, "Data should be null");
+        }
+
+        [TestMethod]
+        public void TryPeekFound()
+        {
+            var cache = new LruCache<int, int>(10);
+            cache.AddOrUpdate(1, 1);
+
+            bool result = cache.TryPeek(1, out int data);
+            Assert.IsTrue(result, "Item should have been found");
+            Assert.AreEqual(1, data, "Data should match");
+        }
+
+        [TestMethod]
+        public void TryPeekNotFound()
+        {
+            var cache = new LruCache<int, string>(10);
+            cache.AddOrUpdate(1, "1");
+
+            bool result = cache.TryPeek(2, out string data);
+            Assert.IsFalse(result, "Item should not have been found");
+            Assert.IsNull(data, "Data should be null");
+        }
+
+        [TestMethod]
+        public void TryRemoveFound()
+        {
+            var cache = new LruCache<int, int>(10);
+            cache.AddOrUpdate(1, 1);
+            bool result = cache.TryRemove(1);
+            Assert.IsTrue(result, "Item should have been found");
+        }
+
+        [TestMethod]
+        public void TryRemoveNotFound()
+        {
+            var cache = new LruCache<int, string>(10);
+            cache.AddOrUpdate(1, "1");
+            bool result = cache.TryRemove(2);
+            Assert.IsFalse(result, "Item should not have been found");
         }
     }
 }

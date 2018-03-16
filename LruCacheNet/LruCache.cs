@@ -1,7 +1,5 @@
-﻿//  
-// Copyright (c) Mark Davis. All rights reserved.  
+﻿// Copyright (c) Mark Davis. All rights reserved.  
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.  
-//  
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +19,7 @@ namespace LruCacheNet
         private Dictionary<K, Node<K, T>> _data;
         private Node<K, T> _head;
         private Node<K, T> _tail;
-        private int _cacheSize;        
+        private int _cacheSize;
         private object _lock;
         private UpdateDataMethod _updateMethod;
         private CreateCopyMethod _createMethod;
@@ -188,6 +186,30 @@ namespace LruCacheNet
         }
 
         /// <summary>
+        /// Attempts to retrieve a value from the cache
+        /// </summary>
+        /// <param name="key">Key to retrieve</param>
+        /// <param name="data">Data from the cache, default value if not found</param>
+        /// <returns>True if key is found in the cache, otherwise false</returns>
+        public bool TryGet(K key, out T data)
+        {
+            lock (_lock)
+            {
+                if (_data.TryGetValue(key, out Node<K, T> node))
+                {
+                    data = node.Data;
+                    MoveNodeUp(node);
+                    return true;
+                }
+                else
+                {
+                    data = default(T);
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Marks an item as used and moves it to the front of the list
         /// </summary>
         /// <param name="key">Key for the item to refresh</param>
@@ -231,6 +253,27 @@ namespace LruCacheNet
         }
 
         /// <summary>
+        /// Attempts to remove an item from the cache
+        /// </summary>
+        /// <param name="key">Item to remove from the cache</param>
+        /// <returns>True if item removed, false if not found</returns>
+        public bool TryRemove(K key)
+        {
+            lock (_lock)
+            {
+                if (_data.TryGetValue(key, out Node<K, T> node))
+                {
+                    RemoveNodeFromList(node);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks if an item is the cache. Does not update its position.
         /// </summary>
         /// <param name="key">Key for which to search in the cache.</param>
@@ -261,6 +304,29 @@ namespace LruCacheNet
                 else
                 {
                     throw new KeyNotFoundException();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to retrieve an item from the cache without updating its position
+        /// </summary>
+        /// <param name="key">Key for which to search the queue</param>
+        /// <param name="data">Output data if found in the cache, otherwise default(T)</param>
+        /// <returns>Item for key if found, otherwise null</returns>
+        public bool TryPeek(K key, out T data)
+        {
+            lock (_lock)
+            {
+                if (_data.TryGetValue(key, out Node<K, T> node))
+                {
+                    data = node.Data;
+                    return true;
+                }
+                else
+                {
+                    data = default(T);
+                    return false;
                 }
             }
         }
