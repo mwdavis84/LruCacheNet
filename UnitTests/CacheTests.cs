@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.  
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using LruCacheNet;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -217,38 +218,20 @@ namespace UnitTests
             }
 
             Assert.AreEqual(10, cache.Count, "Cache should contain 10 items");
-            var removedData = cache.Remove(keyToRemove);
-            Assert.IsNotNull(removedData, "Removed data should not be null");
-            Assert.AreEqual(keyToRemove, removedData.TestValue1, "Removed item doesn't match added item");
+            bool removedData = cache.Remove(keyToRemove);
+            Assert.IsTrue(removedData, "Removed data should not be null");
             Assert.AreEqual(9, cache.Count, "Cache should be empty");
 
-            bool thrown = false;
-            try
-            {
-                removedData = cache.Remove(keyToRemove);
-            }
-            catch (KeyNotFoundException)
-            {
-                thrown = true;
-            }
-            Assert.IsTrue(thrown, "Removed data should be null");
+            bool removed = cache.Remove(keyToRemove);
+            Assert.IsFalse(removed, "Item should not have been removed");
         }
 
         [TestMethod, TestCategory("Cache")]
         public void RemoveItemNotThere()
         {
             var cache = new LruCache<string, TestData>(10);
-
-            bool thrown = false;
-            try
-            {
-                cache.Remove("0");
-            }
-            catch (KeyNotFoundException)
-            {
-                thrown = true;
-            }
-            Assert.IsTrue(thrown, "Removed data should be null");
+            bool removed = cache.Remove("0");
+            Assert.IsFalse(removed, "Item should not have been removed");
         }
 
         [TestMethod, TestCategory("Cache")]
@@ -263,24 +246,16 @@ namespace UnitTests
             Assert.AreEqual(10, cache.Count, "Cache size incorrect before clearing");
             for (int index = 0; index < 10; ++index)
             {
-                var removed = cache.Get(index.ToString());
-                Assert.IsNotNull(removed, "Removed item should exist in cache");
+                var item = cache.Get(index.ToString());
+                Assert.IsNotNull(item, "Removed item should exist in cache");
             }
 
             cache.Clear();
             Assert.AreEqual(0, cache.Count, "Cache size incorrect after clearing");
             for (int index = 0; index < 10; ++index)
             {
-                bool thrown = false;
-                try
-                {
-                    cache.Remove(index.ToString());
-                }
-                catch (KeyNotFoundException)
-                {
-                    thrown = true;
-                }
-                Assert.IsTrue(thrown, "Removed item shouldn't exist in cache");
+                bool removed = cache.Remove(index.ToString());
+                Assert.IsFalse(removed, "Removed item shouldn't exist in cache");
             }
         }
 
@@ -373,7 +348,7 @@ namespace UnitTests
             Assert.IsFalse(check, "Item should not have refreshed in cache");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void InsertsAndGets()
         {
             var cache = new LruCache<int, int>(2);
@@ -413,29 +388,29 @@ namespace UnitTests
             Assert.AreEqual(4, retrieved);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryGetFound()
         {
             var cache = new LruCache<int, int>(10);
             cache.AddOrUpdate(1, 1);
-            
-            bool result = cache.TryGet(1, out int data);
+
+            bool result = cache.TryGetValue(1, out int data);
             Assert.IsTrue(result, "Item should have been found");
             Assert.AreEqual(1, data, "Data should match");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryGetNotFound()
         {
             var cache = new LruCache<int, string>(10);
             cache.AddOrUpdate(1, "1");
 
-            bool result = cache.TryGet(2, out string data);
+            bool result = cache.TryGetValue(2, out string data);
             Assert.IsFalse(result, "Item should not have been found");
             Assert.IsNull(data, "Data should be null");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryPeekFound()
         {
             var cache = new LruCache<int, int>(10);
@@ -446,7 +421,7 @@ namespace UnitTests
             Assert.AreEqual(1, data, "Data should match");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Cache")]
         public void TryPeekNotFound()
         {
             var cache = new LruCache<int, string>(10);
@@ -457,22 +432,331 @@ namespace UnitTests
             Assert.IsNull(data, "Data should be null");
         }
 
-        [TestMethod]
-        public void TryRemoveFound()
+        [TestMethod, TestCategory("Cache")]
+        public void ToList()
         {
             var cache = new LruCache<int, int>(10);
-            cache.AddOrUpdate(1, 1);
-            bool result = cache.TryRemove(1);
-            Assert.IsTrue(result, "Item should have been found");
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.AddOrUpdate(index, index);
+            }
+
+            List<int> items = cache.ToList();
+            Assert.AreEqual(cache.Count, items.Count, "List size should match cache size");
+            for (int index = 0; index < 10; ++index)
+            {
+                Assert.AreEqual(9 - index, items[index], "List not in expected order");
+            }
         }
 
-        [TestMethod]
-        public void TryRemoveNotFound()
+        [TestMethod, TestCategory("Cache")]
+        public void CacheEnumerator()
         {
-            var cache = new LruCache<int, string>(10);
-            cache.AddOrUpdate(1, "1");
-            bool result = cache.TryRemove(2);
-            Assert.IsFalse(result, "Item should not have been found");
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.AddOrUpdate(index, index);
+            }
+
+            int testIndex = 9;
+            foreach (var item in cache)
+            {
+                Assert.AreEqual(testIndex, item.Key, "Key does not match");
+                Assert.AreEqual(testIndex, item.Value, "Value does not match");
+                --testIndex;
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheGenericEnumerator()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.AddOrUpdate(index, index);
+            }
+
+            int testIndex = 9;
+            IEnumerable plainDict = (IEnumerable)cache;
+            var enumerator = plainDict.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                var item = (KeyValuePair<int, int>)enumerator.Current;
+                Assert.AreEqual(testIndex, item.Key, "Key does not match");
+                Assert.AreEqual(testIndex, item.Value, "Value does not match");
+                --testIndex;
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheGetIndexer()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.AddOrUpdate(index, index);
+            }
+
+            for (int index = 0; index < 10; ++index)
+            {
+                int testIndex = cache[index];
+                int testGet = cache.Get(index);
+                Assert.AreEqual(index, testIndex, "Index get isn't correct value");
+                Assert.AreEqual(testIndex, testGet, "Index get doesn't match method get");
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheSetIndexer()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache[index] = index;
+                int test = cache.Get(index);
+                Assert.AreEqual(index, test, "Value not correctly inserted");
+            }
+
+            for (int index = 0; index < 10; ++index)
+            {
+                cache[index] = 9 - index;
+                int test = cache.Get(index);
+                Assert.AreEqual(9 - index, test, "Updated value not correctly inserted");
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheAdd()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+                int test = cache.Get(index);
+                Assert.AreEqual(index, test, "Item not correctly added");
+            }
+
+            bool thrown = false;
+            try
+            {
+                cache.Add(0, 0);
+            }
+            catch (ArgumentException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Item should not have been added");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheAddKeyValuePair()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+                int test = cache.Get(index);
+                Assert.AreEqual(index, test, "Item not correctly added");
+            }
+
+            bool thrown = false;
+            try
+            {
+                cache.Add(new KeyValuePair<int, int>(0, 0));
+            }
+            catch (ArgumentException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Item should not have been added");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void ContainsKeyValuePair()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool found = cache.Contains(new KeyValuePair<int, int>(0, 0));
+            Assert.IsTrue(found, "Item should have been found");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void ContainsKeyNotValue()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool found = cache.Contains(new KeyValuePair<int, int>(0, 1));
+            Assert.IsFalse(found, "Item not should have been found");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void ContainsKeyValuePairNotFound()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool found = cache.Contains(new KeyValuePair<int, int>(11, 12));
+            Assert.IsFalse(found, "Item not should have been found");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void RemoveKeyValuePair()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool found = cache.Remove(new KeyValuePair<int, int>(0, 0));
+            Assert.IsTrue(found, "Item should have been found");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void RemoveKeyNotValue()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool found = cache.Remove(new KeyValuePair<int, int>(0, 1));
+            Assert.IsFalse(found, "Item not should have been found");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void RemoveKeyValuePairNotFound()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool found = cache.Remove(new KeyValuePair<int, int>(11, 12));
+            Assert.IsFalse(found, "Item not should have been found");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheCopyTo()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            KeyValuePair<int, int>[] array = new KeyValuePair<int, int>[10];
+            cache.CopyTo(array, 0);
+
+            for (int index = 0; index < array.Length; ++index)
+            {
+                Assert.AreEqual(9 - index, array[index].Key, "Keys don't match");
+                Assert.AreEqual(9 - index, array[index].Value, "Values don't match");
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheCopyToWithIndex()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            KeyValuePair<int, int>[] array = new KeyValuePair<int, int>[20];
+            cache.CopyTo(array, 10);
+
+            for (int index = 0; index < cache.Count; ++index)
+            {
+                Assert.AreEqual(9 - index, array[index + 10].Key, "Keys don't match");
+                Assert.AreEqual(9 - index, array[index + 10].Value, "Values don't match");
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheCopyToTooSmall()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            KeyValuePair<int, int>[] array = new KeyValuePair<int, int>[5];
+
+            bool thrown = false;
+            try
+            {
+                cache.CopyTo(array, 0);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Exception should have been thrown");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheReadOnly()
+        {
+            var cache = new LruCache<int, int>(10);
+            Assert.IsFalse(cache.IsReadOnly, "Cache should not be read only");
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheKeys()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool[] found = new bool[10];
+            foreach (int key in cache.Keys)
+            {
+                found[key] = true;
+            }
+
+            for (int index = 0; index < found.Length; ++index)
+            {
+                Assert.IsTrue(found[index], $"Index {index} wasn't found");
+            }
+        }
+
+        [TestMethod, TestCategory("Cache")]
+        public void CacheValues()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(new KeyValuePair<int, int>(index, index));
+            }
+
+            bool[] found = new bool[10];
+            foreach (int key in cache.Values)
+            {
+                found[key] = true;
+            }
+
+            for (int index = 0; index < found.Length; ++index)
+            {
+                Assert.IsTrue(found[index], $"Index {index} wasn't found");
+            }
         }
     }
 }

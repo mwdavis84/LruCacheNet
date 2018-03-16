@@ -8,19 +8,19 @@ namespace LruCacheNet
     /// <summary>
     /// Node for storing data in the doubly linked list
     /// </summary>
-    /// <typeparam name="K">Type of key to use to identify the data</typeparam>
-    /// <typeparam name="T">Type of data to store in the cache</typeparam>
-    public sealed class Node<K, T>
+    /// <typeparam name="TKey">Type of key to use to identify the data</typeparam>
+    /// <typeparam name="TValue">Type of data to store in the cache</typeparam>
+    public sealed class Node<TKey, TValue>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Node{K,T}"/> class
+        /// Initializes a new instance of the <see cref="Node{TKey,TValue}"/> class
         /// </summary>
         /// <param name="key">Key for the node</param>
         /// <param name="data">Data for the node</param>
 #if DEBUG
-        public Node(K key, T data)
+        public Node(TKey key, TValue data)
 #else
-        internal Node(K key, T data)
+        internal Node(TKey key, TValue data)
 #endif
         {
             if (key == null)
@@ -32,7 +32,7 @@ namespace LruCacheNet
                 throw new ArgumentException("Data cannot be null", nameof(data));
             }
 
-            Data = data;
+            Value = data;
             Key = key;
             Next = null;
             Previous = null;
@@ -41,29 +41,29 @@ namespace LruCacheNet
         /// <summary>
         /// Gets or sets the data stored in the node
         /// </summary>
-        public T Data { get; set; }
+        public TValue Value { get; set; }
 
         /// <summary>
         /// Gets or sets the key for the data in the cache
         /// </summary>
-        public K Key { get; set; }
+        public TKey Key { get; set; }
 
         /// <summary>
         /// Gets or sets the next node in the list
         /// </summary>
-        public Node<K, T> Next { get; set; }
+        public Node<TKey, TValue> Next { get; set; }
 
         /// <summary>
         /// Gets or sets the previous node in the list
         /// </summary>
-        public Node<K, T> Previous { get; set; }
+        public Node<TKey, TValue> Previous { get; set; }
 
         public override string ToString()
         {
-            return $"Key:{Key} Data:{Data.ToString()} Previous:{GetNodeSummary(Previous)} Next:{GetNodeSummary(Next)}";
+            return $"Key:{Key} Data:{Value.ToString()} Previous:{GetNodeSummary(Previous)} Next:{GetNodeSummary(Next)}";
         }
 
-        private string GetNodeSummary(Node<K, T> node)
+        private string GetNodeSummary(Node<TKey, TValue> node)
         {
             return node != null ? "Set" : "Null";
         }
