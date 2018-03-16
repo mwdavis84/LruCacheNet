@@ -16,20 +16,36 @@ namespace LruCacheNet
     {
         private Node<TKey, TValue> _head;
         private Node<TKey, TValue> _current;
+        private LruCache<TKey, TValue> _cache;
+        private bool _collectionChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheEnumerator{TKey, TValue}"/> class
         /// </summary>
+        /// <param name="cache">Cache to which this enumerator belongs</param>
         /// <param name="head">First item in the list</param>
-        public CacheEnumerator(Node<TKey, TValue> head)
+        public CacheEnumerator(LruCache<TKey, TValue> cache, Node<TKey, TValue> head)
         {
             if (head == null)
             {
                 throw new ArgumentException("Head can't be null");
             }
+            if (cache != null)
+            {
+                _cache = cache;
+                cache.CollectionChanged += Cache_CollectionChanged;
+            }
 
             _head = head;
             _current = null;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CacheEnumerator{TKey, TValue}"/> class
+        /// </summary>
+        /// <param name="head">First item in the list</param>
+        public CacheEnumerator(Node<TKey, TValue> head) : this(null, head)
+        {
         }
 
         /// <summary>
@@ -43,6 +59,11 @@ namespace LruCacheNet
                 {
                     throw new ObjectDisposedException(nameof(CacheEnumerator<TKey, TValue>));
                 }
+                if (_collectionChanged)
+                {
+                    throw new InvalidOperationException("Collection has changed");
+                }
+
                 return new KeyValuePair<TKey, TValue>(_current.Key, _current.Value);
             }
         }
@@ -59,6 +80,11 @@ namespace LruCacheNet
         {
             _head = null;
             _current = null;
+            if (_cache != null)
+            {
+                _cache.CollectionChanged -= Cache_CollectionChanged;
+            }
+            _cache = null;
         }
 
         /// <summary>
@@ -70,6 +96,10 @@ namespace LruCacheNet
             if (_head == null)
             {
                 throw new ObjectDisposedException(nameof(CacheEnumerator<TKey, TValue>));
+            }
+            if (_collectionChanged)
+            {
+                throw new InvalidOperationException("Collection has changed");
             }
 
             if (_current == null)
@@ -94,7 +124,22 @@ namespace LruCacheNet
         /// </summary>
         public void Reset()
         {
+            if (_collectionChanged)
+            {
+                throw new InvalidOperationException("Collection has changed");
+            }
+
             _current = null;
+        }
+
+        /// <summary>
+        /// Fired when the collection containing this enumerator changes
+        /// </summary>
+        /// <param name="sender">Cache that changed</param>
+        /// <param name="e">Event args</param>
+        private void Cache_CollectionChanged(object sender, EventArgs e)
+        {
+            _collectionChanged = true;
         }
     }
 }

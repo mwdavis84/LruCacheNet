@@ -68,6 +68,11 @@ namespace LruCacheNet
         public delegate TValue CreateCopyMethod(TValue data);
 
         /// <summary>
+        /// Event fired when the contents of the cache change
+        /// </summary>
+        public event EventHandler CollectionChanged;
+
+        /// <summary>
         /// Gets the number of items currently int the cache
         /// </summary>
         public int Count
@@ -172,11 +177,15 @@ namespace LruCacheNet
 
                     if (_updateMethod != null)
                     {
-                        _updateMethod.Invoke(node.Value, data);
+                        if (_updateMethod.Invoke(node.Value, data))
+                        {
+                            CollectionChanged?.Invoke(this, new EventArgs());
+                        }
                     }
                     else
                     {
                         node.Value = data;
+                        CollectionChanged?.Invoke(this, new EventArgs());
                     }
                 }
                 else
@@ -262,6 +271,7 @@ namespace LruCacheNet
                 _data.Clear();
                 _head = null;
                 _tail = null;
+                CollectionChanged?.Invoke(this, new EventArgs());
             }
         }
 
@@ -522,6 +532,7 @@ namespace LruCacheNet
             }
             node.Previous = null;
             node.Next = null;
+            CollectionChanged?.Invoke(this, new EventArgs());
         }
 
         /// <summary>
@@ -551,6 +562,7 @@ namespace LruCacheNet
             _head.Previous = node;
             node.Previous = null;
             _head = node;
+            CollectionChanged?.Invoke(this, new EventArgs());
         }
 
         private void AddItem(TKey key, TValue value)
@@ -582,6 +594,7 @@ namespace LruCacheNet
                         RemoveNodeFromList(nodeToRemove);
                     }
                 }
+                CollectionChanged?.Invoke(this, new EventArgs());
             }
         }
 

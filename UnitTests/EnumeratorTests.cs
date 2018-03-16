@@ -5,6 +5,7 @@ using LruCacheNet;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace UnitTests
 {
@@ -125,6 +126,259 @@ namespace UnitTests
             var current = enumerator.Current;
             var plainCurrent = plainEnumerator.Current;
             Assert.AreEqual(current, plainCurrent);
+        }
+
+        /// <summary>
+        /// Tests when an item is added to the collection
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedAdded()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.Add(11, 11);
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Tests when an item in the collection updates without an update method
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedUpdateValue()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.AddOrUpdate(5, 4);
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Tests when an item is updated in the underlying collection with an update method
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedUpdateMethod()
+        {
+            var cache = new LruCache<int, int>(10);
+            cache.SetUpdateMethod((a, b) =>
+            {
+                if (a != b)
+                {
+                    a = b;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.AddOrUpdate(5, 4);
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Tests when an item update is called, but the item is not updated
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedUpdateMethodNoChange()
+        {
+            var cache = new LruCache<int, int>(10);
+            cache.SetUpdateMethod((a, b) =>
+            {
+                if (a != b)
+                {
+                    a = b;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.AddOrUpdate(9, 9);
+            success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+        }
+
+        /// <summary>
+        /// Tests when an item is removed from the collection
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedRemoved()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.Remove(0);
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Tests when an item is retrieved from the collection and its position changes
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedGet()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.Get(0);
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Tests when an item is refreshed in the collection and its position changes
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedRefresh()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.Refresh(0);
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Tests when an item is refreshed in the collection and its position does not change
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedRefreshNoMove()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.Refresh(9);
+            success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+        }
+
+        /// <summary>
+        /// Tests when the collection is cleared
+        /// </summary>
+        [TestMethod]
+        public void EnumeratorChangedClear()
+        {
+            var cache = new LruCache<int, int>(10);
+            for (int index = 0; index < 10; ++index)
+            {
+                cache.Add(index, index);
+            }
+
+            var enumerator = cache.GetEnumerator();
+            bool success = enumerator.MoveNext();
+            Assert.IsTrue(success, "Enumerator should move");
+
+            cache.Clear();
+
+            CheckForInvalidEnumerator(enumerator);
+        }
+
+        /// <summary>
+        /// Checks to ensure that all expected enumerator methods fail after the collection has updated
+        /// </summary>
+        /// <param name="enumerator">Enumerator to check</param>
+        private void CheckForInvalidEnumerator(IEnumerator<KeyValuePair<int, int>> enumerator)
+        {
+            bool thrown = false;
+            try
+            {
+                var current = enumerator.Current;
+            }
+            catch (InvalidOperationException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Exception should be thrown accessing Current");
+
+            thrown = false;
+            try
+            {
+                enumerator.MoveNext();
+            }
+            catch (InvalidOperationException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Exception should be thrown calling MoveNext");
+
+            thrown = false;
+            try
+            {
+                enumerator.Reset();
+            }
+            catch (InvalidOperationException)
+            {
+                thrown = true;
+            }
+            Assert.IsTrue(thrown, "Exception should be thrown calling Reset");
         }
 
         /// <summary>
