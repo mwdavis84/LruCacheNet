@@ -4,7 +4,7 @@ A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.
 
 # Usage
 
-1) Install the Nuget package from https://www.nuget.org/packages/LruCacheNet/1.0.0
+1) Install the Nuget package from https://www.nuget.org/packages/LruCacheNet
 
 2) Add the namespace 
     `using LruCacheNet;`
