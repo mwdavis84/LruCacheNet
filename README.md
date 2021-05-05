@@ -13,7 +13,7 @@ A fast, generic, thread-safe Least Recently Used (LRU) cache for .NET Standard.
 
     ```
     // Create a cache, optionally with a capacity
-    LruCache<object> cache = new LruCache<string, object>(); 
+    LruCache<string, object> cache = new LruCache<string, object>(); 
     
     // Add an item to the front of the cache
     cache.AddOrUpdate("Key", new object());          
