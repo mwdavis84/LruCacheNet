@@ -100,7 +100,7 @@ namespace LruCacheNet
             {
                 lock (_lock)
                 {
-                    return _data.Keys;
+                    return new List<TKey>(_data.Keys);
                 }
             }
         }
@@ -167,6 +167,7 @@ namespace LruCacheNet
                 throw new ArgumentException("Data cannot be null", nameof(data));
             }
 
+            EventHandler handler = null;
             lock (_lock)
             {
                 if (_data.TryGetValue(key, out Node<TKey, TValue> node))
@@ -175,24 +176,31 @@ namespace LruCacheNet
                     // Move node to the head, and link up the node's previous next/previous together
                     MoveNodeUp(node);
 
+                    bool updated = true;
                     if (_updateMethod != null)
                     {
-                        if (_updateMethod.Invoke(node.Value, data))
+                        if (!_updateMethod.Invoke(node.Value, data))
                         {
-                            CollectionChanged?.Invoke(this, new EventArgs());
+                            updated = false;
                         }
                     }
                     else
                     {
                         node.Value = data;
-                        CollectionChanged?.Invoke(this, new EventArgs());
+                    }
+                    
+                    if (updated)
+                    {
+                        handler = CollectionChanged;
                     }
                 }
                 else
                 {
                     AddItem(key, data);
+                    handler = CollectionChanged;
                 }
             }
+            handler?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -202,18 +210,21 @@ namespace LruCacheNet
         /// <returns>True if item was in the cache and refreshed; otherwise false</returns>
         public bool Refresh(TKey key)
         {
+            EventHandler handler = null;
             lock (_lock)
             {
                 if (_data.TryGetValue(key, out Node<TKey, TValue> node))
                 {
                     MoveNodeUp(node);
-                    return true;
+                    handler = CollectionChanged;
                 }
                 else
                 {
                     return false;
                 }
             }
+            handler?.Invoke(this, EventArgs.Empty);
+            return true;
         }
 
         /// <summary>
@@ -266,13 +277,18 @@ namespace LruCacheNet
         /// </summary>
         public void Clear()
         {
+            EventHandler handler = null;
             lock (_lock)
             {
-                _data.Clear();
-                _head = null;
-                _tail = null;
-                CollectionChanged?.Invoke(this, new EventArgs());
+                if (_data.Count > 0)
+                {
+                    _data.Clear();
+                    _head = null;
+                    _tail = null;
+                    handler = CollectionChanged;
+                }
             }
+            handler?.Invoke(this, new EventArgs());
         }
 
         /// <summary>
@@ -305,18 +321,23 @@ namespace LruCacheNet
         /// <exception cref="KeyNotFoundException">Thrown if the key is not found in the cache</exception>
         public TValue Get(TKey key)
         {
+            EventHandler handler = null;
+            TValue val;
             lock (_lock)
             {
                 if (_data.TryGetValue(key, out Node<TKey, TValue> node))
                 {
                     MoveNodeUp(node);
-                    return node.Value;
+                    val = node.Value;
+                    handler = CollectionChanged;
                 }
                 else
                 {
                     throw new KeyNotFoundException();
                 }
             }
+            handler?.Invoke(this, EventArgs.Empty);
+            return val;
         }
 
         /// <summary>
@@ -327,20 +348,28 @@ namespace LruCacheNet
         /// <returns>True if key is found in the cache, otherwise false</returns>
         public bool TryGetValue(TKey key, out TValue data)
         {
+            EventHandler handler = null;
+            bool found = false;
             lock (_lock)
             {
                 if (_data.TryGetValue(key, out Node<TKey, TValue> node))
                 {
                     data = node.Value;
                     MoveNodeUp(node);
-                    return true;
+                    handler = CollectionChanged;
+                    found = true;
                 }
                 else
                 {
                     data = default(TValue);
-                    return false;
                 }
             }
+            if (found)
+            {
+                handler?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -350,18 +379,23 @@ namespace LruCacheNet
         /// <returns>True if the item was found in the cache and removed, otherwise false if not found</returns>
         public bool Remove(TKey key)
         {
+            EventHandler handler = null;
+            bool found = false;
             lock (_lock)
             {
                 if (_data.TryGetValue(key, out Node<TKey, TValue> node))
                 {
                     RemoveNodeFromList(node);
-                    return true;
-                }
-                else
-                {
-                    return false;
+                    handler = CollectionChanged;
+                    found = true;
                 }
             }
+            if (found)
+            {
+                handler?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -385,17 +419,20 @@ namespace LruCacheNet
         /// <exception cref="ArgumentException">Thrown if the key already exists in the cache</exception>
         public void Add(TKey key, TValue value)
         {
+            EventHandler handler = null;
             lock (_lock)
             {
                 if (!_data.ContainsKey(key))
                 {
                     AddItem(key, value);
+                    handler = CollectionChanged;
                 }
                 else
                 {
                     throw new ArgumentException("Key already exists in cache");
                 }
             }
+            handler?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -405,10 +442,7 @@ namespace LruCacheNet
         /// <exception cref="ArgumentException">Thrown if the item's key already exists in the cache</exception>
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            lock (_lock)
-            {
-                Add(item.Key, item.Value);
-            }
+            Add(item.Key, item.Value);
         }
 
         /// <summary>
@@ -465,6 +499,8 @@ namespace LruCacheNet
         /// <returns>True if item was removed, otherwise false</returns>
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
+            EventHandler handler = null;
+             bool found = false;
             lock (_lock)
             {
                 if (_data.TryGetValue(item.Key, out Node<TKey, TValue> node))
@@ -472,11 +508,17 @@ namespace LruCacheNet
                     if (node.Value.Equals(item.Value))
                     {
                         RemoveNodeFromList(node);
-                        return true;
+                        handler = CollectionChanged;
+                         found = true;
                     }
                 }
-                return false;
             }
+            if(found) 
+            {
+                handler?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -485,10 +527,19 @@ namespace LruCacheNet
         /// <returns>Enumerator for the cache, ordered from most recently used to least</returns>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
+            List<KeyValuePair<TKey, TValue>> snapshot;
             lock (_lock)
             {
-                return new CacheEnumerator<TKey, TValue>(this, _head);
+                snapshot = new List<KeyValuePair<TKey, TValue>>(_data.Count);
+                var node = _head;
+                while (node != null)
+                {
+                    // Assuming we want a stable snapshot of current keys and values
+                    snapshot.Add(new KeyValuePair<TKey, TValue>(node.Key, node.Value));
+                    node = node.Next;
+                }
             }
+            return snapshot.GetEnumerator();
         }
 
         /// <summary>
@@ -497,10 +548,7 @@ namespace LruCacheNet
         /// <returns>Enumerator for the cache, ordered from most recently used to least</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            lock (_lock)
-            {
-                return GetEnumerator();
-            }
+            return GetEnumerator();
         }
 
         #endregion
@@ -532,7 +580,6 @@ namespace LruCacheNet
             }
             node.Previous = null;
             node.Next = null;
-            CollectionChanged?.Invoke(this, new EventArgs());
         }
 
         /// <summary>
@@ -562,7 +609,6 @@ namespace LruCacheNet
             _head.Previous = node;
             node.Previous = null;
             _head = node;
-            CollectionChanged?.Invoke(this, new EventArgs());
         }
 
         private void AddItem(TKey key, TValue value)
@@ -594,7 +640,6 @@ namespace LruCacheNet
                         RemoveNodeFromList(nodeToRemove);
                     }
                 }
-                CollectionChanged?.Invoke(this, new EventArgs());
             }
         }
 
